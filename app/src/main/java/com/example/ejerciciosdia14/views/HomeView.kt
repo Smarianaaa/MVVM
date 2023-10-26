@@ -26,10 +26,11 @@ import com.example.ejerciciosdia14.components.MainButton
 import com.example.ejerciciosdia14.components.MainTextField
 import com.example.ejerciciosdia14.components.ShowInfoCards
 import com.example.ejerciciosdia14.components.SpaceH
+import com.example.ejerciciosdia14.viewmodels.PrestamoViewModel
 import java.math.BigDecimal
 
 @Composable
-fun ContentHomeView(paddingValues: PaddingValues) {
+fun ContentHomeView(paddingValues: PaddingValues, viewModel: PrestamoViewModel) {
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -37,40 +38,35 @@ fun ContentHomeView(paddingValues: PaddingValues) {
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var montoPrestamo by remember { mutableStateOf("") }
-        var cantCuotas by remember { mutableStateOf("") }
-        var tasa by remember { mutableStateOf("") }
-        var montoInteres by remember { mutableStateOf(0.0) }
-        var montoCuota by remember { mutableStateOf(0.0) }
-        var showAlert by remember { mutableStateOf(false) }
+        val state = viewModel.state
 
         ShowInfoCards(
             titleInteres = "Total: ",
-            montoInteres = montoInteres,
+            montoInteres = state.montoInteres,
             titleMonto = "Cuota: ",
-            monto = montoCuota
+            monto = state.montoCuota
         )
 
         MainTextField(
-            value = montoPrestamo,
+            value = state.montoPrestamo,
             onValueChange = {
-                montoPrestamo = it
+                viewModel.onValue(value = it, campo = "montoPrestamo")
             },
             label = "Prestamo"
         )
         SpaceH()
         MainTextField(
-            value = cantCuotas,
+            value = state.cantCuotas,
             onValueChange = {
-                cantCuotas = it
+                viewModel.onValue(value = it, campo = "cuotas")
             },
             label = "Cuotas"
         )
         SpaceH(10.dp)
         MainTextField(
-            value = tasa,
+            value = state.tasa,
             onValueChange = {
-                tasa = it
+                viewModel.onValue(value = it, campo = "tasa")
             },
             label = "Tasa"
         )
@@ -78,30 +74,18 @@ fun ContentHomeView(paddingValues: PaddingValues) {
         MainButton(
             text = "Calcular",
         ) {
-            if (montoPrestamo != "" && cantCuotas != "") {
-                val monto = montoPrestamo.toDouble()
-                val cuotas = cantCuotas.toInt()
-                val tasa = tasa.toDouble()
-                montoInteres = calcularTotal(monto, cuotas, tasa)
-                montoCuota = calcularCuota(monto, cuotas, tasa)
-            } else {
-                showAlert = true
-            }
+            viewModel.calcular()
         }
         MainButton(text = "Limpiar", color = Color.Red) {
-            montoPrestamo = ""
-            cantCuotas = ""
-            tasa = ""
-            montoInteres = 0.0
-            montoCuota = 0.0
+            viewModel.limpiar()
         }
-        if (showAlert) {
+        if (viewModel.state.showAlert) {
             Alert(
                 title = "Alerta",
                 message = "Ingresa los datos",
                 confirmText = "Aceptar",
                 onConfirmClick = {
-                    showAlert = false
+                    viewModel.confirmDialog()
                 },
             ) {}
         }
@@ -110,7 +94,7 @@ fun ContentHomeView(paddingValues: PaddingValues) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeView() {
+fun HomeView(viewModel: PrestamoViewModel) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -121,7 +105,7 @@ fun HomeView() {
             )
         }
     ) {
-        ContentHomeView(it)
+        ContentHomeView(it, viewModel)
     }
 }
 
